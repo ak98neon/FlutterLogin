@@ -68,11 +68,10 @@ class _MyHomePageState extends State<MyHomePage> {
       child: MaterialButton(
         minWidth: MediaQuery.of(context).size.width,
         padding: EdgeInsets.fromLTRB(20.0, 15.0, 20.0, 15.0),
-        onPressed: () {
+        onPressed: () async {
           print("Try to login");
-          authUser(emailValue, passwordValue).then((value) {
-            storage.write(key: "jwt", value: value);
-          });
+          var token = await authUser(emailValue, passwordValue);
+          storage.write(key: "jwt", value: token);
           if (storage.read(key: "jwt") != null) {
             Navigator.push(
                 context, MaterialPageRoute(builder: (context) => MainRoute()));
