@@ -32,15 +32,21 @@ class _MyHomePageState extends State<MyHomePage> {
   TextStyle style = TextStyle(fontFamily: 'Montserrat', fontSize: 20.0);
   String emailValue;
   String passwordValue;
+  final _textUsername = TextEditingController();
+  final _textPassword = TextEditingController();
+  bool _validateUsername = false;
+  bool _validatePass = false;
 
   @override
   Widget build(BuildContext context) {
-    final emailField = TextField(
+    final usernameField = TextField(
+      controller: _textUsername,
       obscureText: false,
       style: style,
       decoration: InputDecoration(
           contentPadding: EdgeInsets.fromLTRB(20.0, 15.0, 20.0, 15.0),
           hintText: "Email",
+          errorText: _validateUsername ? "Please enter username" : null,
           border:
               OutlineInputBorder(borderRadius: BorderRadius.circular(32.0))),
       onChanged: (text) {
@@ -49,11 +55,13 @@ class _MyHomePageState extends State<MyHomePage> {
     );
 
     final passwordField = TextField(
+      controller: _textPassword,
       obscureText: true,
       style: style,
       decoration: InputDecoration(
           contentPadding: EdgeInsets.fromLTRB(20.0, 15.0, 20.0, 15.0),
           hintText: "Password",
+          errorText: _validatePass ? "Please enter password" : null,
           border:
               OutlineInputBorder(borderRadius: BorderRadius.circular(32.0))),
       onChanged: (text) {
@@ -70,9 +78,26 @@ class _MyHomePageState extends State<MyHomePage> {
         padding: EdgeInsets.fromLTRB(20.0, 15.0, 20.0, 15.0),
         onPressed: () async {
           print("Try to login");
+          setState(() {
+            _textUsername.text.isEmpty
+                ? _validateUsername = true
+                : _validateUsername = false;
+            _textPassword.text.isEmpty
+                ? _validatePass = true
+                : _validatePass = false;
+          });
+
+          if (_validateUsername || _validatePass) {
+            return;
+          }
+
           var token = await authUser(emailValue, passwordValue);
-          storage.write(key: "jwt", value: token);
-          if (storage.read(key: "jwt") != null) {
+          if (token == null) {
+            _showErrorLoginDialog();
+          }
+
+          if (token != null) {
+            storage.write(key: "jwt", value: token);
             Navigator.push(
                 context, MaterialPageRoute(builder: (context) => MainRoute()));
           }
@@ -102,7 +127,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   ),
                 ),
                 SizedBox(height: 45.0),
-                emailField,
+                usernameField,
                 SizedBox(height: 25.0),
                 passwordField,
                 SizedBox(
@@ -119,25 +144,77 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
     );
   }
+
+  void _showErrorLoginDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        // return object of type Dialog
+        return AlertDialog(
+          title: new Text("Error login"),
+          content: new Text("Username or Password incorrect!"),
+        );
+      },
+    );
+  }
 }
 
 class MainRoute extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("FMR"),
-      ),
-      body: Center(
-        child: RaisedButton(
-          onPressed: () {
-            Navigator.pop(context);
-          },
-          child: Text('Go back!'),
+    return WillPopScope(
+      onWillPop: _onWillPop,
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text("FMR"),
         ),
+        body: _fmpList(context),
       ),
     );
   }
+
+  Future<bool> _onWillPop() async {
+    return false;
+  }
+}
+
+Widget _fmpList(BuildContext context) {
+  final titles = [
+    'bike',
+    'boat',
+    'bus',
+    'car',
+    'railway',
+    'run',
+    'subway',
+    'transit',
+    'walk'
+  ];
+
+  final icons = [
+    Icons.directions_bike,
+    Icons.directions_boat,
+    Icons.directions_bus,
+    Icons.directions_car,
+    Icons.directions_railway,
+    Icons.directions_run,
+    Icons.directions_subway,
+    Icons.directions_transit,
+    Icons.directions_walk
+  ];
+
+  return ListView.builder(
+    itemCount: titles.length,
+    itemBuilder: (context, index) {
+      return Card(
+        //                           <-- Card widget
+        child: ListTile(
+          leading: Icon(icons[index]),
+          title: Text(titles[index]),
+        ),
+      );
+    },
+  );
 }
 
 Future<String> authUser(String username, String pass) async {
@@ -157,8 +234,6 @@ Future<String> authUser(String username, String pass) async {
     var responseBody = jsonDecode(response.body);
     return responseBody["token"];
   } else {
-    // If the server did not return a 200 OK response,
-    // then throw an exception.
-    throw Exception('Failed user login');
+    throw Exception("Failed user login");
   }
 }
