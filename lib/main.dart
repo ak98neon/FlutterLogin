@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 
+import 'mainPage.dart';
+
 void main() => runApp(MyApp());
 
 final storage = new FlutterSecureStorage();
@@ -157,64 +159,6 @@ class _MyHomePageState extends State<MyHomePage> {
       },
     );
   }
-}
-
-class MainRoute extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: _onWillPop,
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text("FMR"),
-        ),
-        body: _fmpList(context),
-      ),
-    );
-  }
-
-  Future<bool> _onWillPop() async {
-    return false;
-  }
-}
-
-Widget _fmpList(BuildContext context) {
-  final titles = [
-    'bike',
-    'boat',
-    'bus',
-    'car',
-    'railway',
-    'run',
-    'subway',
-    'transit',
-    'walk'
-  ];
-
-  final icons = [
-    Icons.directions_bike,
-    Icons.directions_boat,
-    Icons.directions_bus,
-    Icons.directions_car,
-    Icons.directions_railway,
-    Icons.directions_run,
-    Icons.directions_subway,
-    Icons.directions_transit,
-    Icons.directions_walk
-  ];
-
-  return ListView.builder(
-    itemCount: titles.length,
-    itemBuilder: (context, index) {
-      return Card(
-        //                           <-- Card widget
-        child: ListTile(
-          leading: Icon(icons[index]),
-          title: Text(titles[index]),
-        ),
-      );
-    },
-  );
 }
 
 Future<String> authUser(String username, String pass) async {
