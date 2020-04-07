@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_login_page/main.dart';
 import 'package:flutter_login_page/model/applicationForm.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 
 import 'fmpDetailScreen.dart';
 
@@ -73,11 +74,14 @@ class _MainPageState extends State<MainRoute> {
     return response.body;
   }
 
+  var formatter = new DateFormat('MMMMEEEEd');
+
   Widget createListView(BuildContext context, AsyncSnapshot snapshot) {
     String formsJson = snapshot.data;
     var tagObjsJson = jsonDecode(formsJson)['Value'] as List;
-    List<ApplicationForm> forms = tagObjsJson.map((tagJson) =>
-        ApplicationForm.fromJson(tagJson)).toList();
+    List<ApplicationForm> forms = tagObjsJson
+        .map((tagJson) => ApplicationForm.fromJson(tagJson))
+        .toList();
     return ListView.builder(
       itemCount: forms.length,
       itemBuilder: (context, index) {
@@ -85,20 +89,21 @@ class _MainPageState extends State<MainRoute> {
           child: ListTile(
             leading: Icon(Icons.directions_bike),
             title: Text(
-              'Id: ' + forms[index].id.toString(),
-              style: TextStyle(
-                  color: Colors.black
-              ),
+                formatter.format(DateTime.parse(forms[index].missionDate)),
+              style: TextStyle(color: Colors.black),
             ),
-            subtitle: Text(
-                forms[index].city.name + " - " + "Kiev"
-            ),
+            subtitle: Text(forms[index].departureCity.name +
+                " - " +
+                forms[index].destinationCity.name),
             onTap: () {
-              Navigator.push(context, MaterialPageRoute(
-                  builder: (context) =>
-                      FmpDetailScreen(
-                        id: forms[index].id, city: forms[index].city,)
-              ),
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => FmpDetailScreen(
+                          id: forms[index].id,
+                          departureCity: forms[index].departureCity,
+                          destinationCity: forms[index].destinationCity,
+                        )),
               );
             },
           ),
